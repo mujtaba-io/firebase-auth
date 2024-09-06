@@ -1,0 +1,316 @@
+
+
+<!--
+ Author: Mujtaba SP22-BSE-036
+ Date: Summer 2024
+ Task 1 by TRA
+-->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Auth App</title>
+</head>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+<style>
+body {
+  font-family: monospace;
+  text-align: center;
+  background-color: #080808; /* Extremely dark background */
+  color: #D9D9D9; /* Light text color */
+}
+
+form {
+  margin: 20px auto;
+  padding: 20px;
+  /*border: 1px solid #111111;*/
+  border-radius: 5px;
+  width: 300px;
+  /*background-color: #111111;*/ /* Extremely dark background for form */
+}
+
+div {
+  margin-bottom: 10px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  color: #D9D9D9; /* Light label text */
+}
+
+input {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #222;
+  border-radius: 3px;
+  background-color: #111111; /* Extremely dark background for input */
+  color: #D9D9D9; /* Light input text */
+}
+
+button {
+  padding: 8px 15px;
+  background-color: #FF5977; /* Rose-pink button color */
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #FF4066; /* Slightly darker rose-pink on hover */
+}
+
+p {
+  margin-top: 20px;
+  color: #D9D9D9; /* Light paragraph text */
+}
+
+
+
+
+
+
+
+
+.fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: red;
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.fab i {
+    font-size: 24px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.notification-dot {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: red;
+    border: 1px solid white;
+}
+
+#popupPanel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    color: #000;
+    padding: 20px;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+}
+
+.column li {
+    list-style-type: none;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.column li:hover {
+    background-color: #aaa;
+    cursor: pointer;
+}
+
+
+</style>
+
+
+<body>
+
+    <br>
+
+    <h1>Firebase Authentication in HTML</h1>
+    <p>Summer 2024, Task 1 by Sir Tehseen Riaz Abbasi</p>
+
+    <form>
+        <div>
+          <label for="email">Email</label>
+          <input type="email" id="email" required>
+        </div>
+        <div>
+          <label for="password">Password</label>
+          <input type="password" id="password" required>
+        </div>
+        <button id="signUpButton" type="button">Sign up</button>
+      </form>
+
+      <p>- OR -</p>
+
+        <form>
+            <div>
+            <label for="email">Email</label>
+            <input type="email" id="email" required>
+            </div>
+            <div>
+            <label for="password">Password</label>
+            <input type="password" id="password" required>
+            </div>
+            <button id="loginButton" type="button">Login</button>
+        </form>
+
+
+
+        <button id="fab" class="fab">
+            <i class="fa fa-bell"></i>
+            <span class="notification-dot"></span>
+        </button>
+
+
+
+
+        <div id="popupPanel" style="display: none;">
+            <h2>Logged In Users</h2>
+            <div class="column" id="column"></div>
+        </div>
+
+
+        <!-- footer-->
+        <footer>
+            <p>Made with &lt;3 by Mujtaba</p>
+            <p>See my other work <a href="https://gameidea.org">here</a> & <a href="https://mujtaba-io.github.io">here</a>.</p>
+        </footer>
+
+
+  <script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-auth.js"></script>
+  <script>
+    var loggedInEmails = [];
+
+
+
+
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDkv0rvld7DdyBUS2SCu7bKaRLLysfVUGU", // real devs don't use gitignore!
+    authDomain: "fir-auth-7be69.firebaseapp.com",
+    projectId: "fir-auth-7be69",
+    storageBucket: "fir-auth-7be69.appspot.com",
+    messagingSenderId: "459498713476",
+    appId: "1:459498713476:web:9347dcc82b6b35a294edd1",
+    measurementId: "G-09FS0PK1HK"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+
+// Get references to the email and password inputs, and the sign in and sign up buttons
+var email = document.getElementById("email");
+var password = document.getElementById("password");
+var signUpButton = document.getElementById("signUpButton");
+
+
+signUpButton.addEventListener("click", function() {
+  // Sign up the user using Firebase's createUserWithEmailAndPassword method
+  firebase.auth().createUserWithEmailAndPassword(email.value, password.value)
+    .then(function() {
+      // if account is created, show a success message
+        alert("Account created successfully!");
+    })
+    .catch(function(error) {
+      // Show an error message
+      alert(error.message);
+    });
+});
+
+var loginButton = document.getElementById("loginButton");
+loginButton.addEventListener("click", function() {
+    // Sign in the user using Firebase's signInWithEmailAndPassword method
+    firebase.auth().signInWithEmailAndPassword(email.value, password.value)
+      .then(function() {
+        // if account exists, show a success message
+        alert("Login successful!");
+        loggedInEmails.push(email.value);
+        updatePopup();
+      })
+      .catch(function(error) {
+        // Show an error message
+        alert(error.message);
+      });
+    });
+
+
+
+
+
+
+
+    const fab = document.getElementById('fab');
+
+fab.addEventListener('click', () => {
+   // alert('Message');
+    togglePopup();
+});
+
+
+
+
+
+
+
+
+var popupVisible = false;
+
+function togglePopup() {
+    var popupPanel = document.getElementById("popupPanel");
+    popupVisible = !popupVisible;
+
+    if (popupVisible) {
+        populatePopup();
+    } else {
+        popupPanel.style.display = "none";
+    }
+}
+
+
+
+function populatePopup() {
+    var popupPanel = document.getElementById("popupPanel");
+    var column = document.getElementById("column");
+    column.innerHTML = "";
+
+    for (var i = 0; i < loggedInEmails.length; i++) {
+        var listItem = document.createElement("li");
+        listItem.textContent = loggedInEmails[i] + " Logged In!";
+        column.appendChild(listItem);
+    }
+
+    popupPanel.style.display = "block";
+}
+
+function updatePopup() {
+    populatePopup();
+}
+
+  </script>
+</body>
+</html>
